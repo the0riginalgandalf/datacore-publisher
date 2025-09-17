@@ -1,9 +1,10 @@
 import { App } from "obsidian";
-import { DatacoreAPI } from "@blacksmithgu/datacore/lib/types/api";
+import { DatacoreApi } from "@blacksmithgu/datacore";
 
-export const getDatacoreAPI = (app: App): DatacoreAPI | undefined => {
-  if (app.plugins.plugins.datacore) {
-    return app.plugins.plugins.datacore.api;
+export const getDatacoreAPI = (app: App): DatacoreApi | undefined => {
+  const datacorePlugin = (app as any).plugins.plugins.datacore;
+  if (datacorePlugin) {
+    return datacorePlugin.api;
   }
   return undefined;
 };
