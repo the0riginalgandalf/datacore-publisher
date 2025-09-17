@@ -49,7 +49,7 @@ export class Operator {
   }
 
   private retrievePathsFromSource(source: string): Array<string> {
-    const pages = this.dc.pages(source);
+    const pages = this.dc.query(source);
     if (!pages) {
       return [];
     }

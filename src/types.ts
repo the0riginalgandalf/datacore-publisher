@@ -6,6 +6,13 @@ export type UnsafeApp = App & {
     executeCommandById(commandId: string): boolean;
     removeCommand(id: string): void;
   };
+  plugins: {
+    plugins: {
+      [pluginId: string]: {
+        api: unknown;
+      };
+    };
+  };
 };
 
 export type BlockInfo = {

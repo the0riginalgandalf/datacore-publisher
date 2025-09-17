@@ -1,8 +1,8 @@
 import { UnsafeApp } from "./types";
-import { DatacoreApi, getAPI } from "@blacksmithgu/datacore";
+import { DatacoreApi } from "@blacksmithgu/datacore";
 
 export function getDatacoreAPI(app?: UnsafeApp | undefined): DatacoreApi {
-  const api = getAPI(app);
+  const api = app?.plugins.plugins["datacore"]?.api as DatacoreApi;
 
   if (!api) {
     throw new Error("Datacore API not found");
