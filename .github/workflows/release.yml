@@ -1,24 +1,14 @@
 name: Release Obsidian plugin
 
 on:
-  push:
-    tags:
-      - "*"
-  pull_request:
-    branches:
-      - main
-    types: [closed]
+  release:
+    types: [published]
 
 jobs:
   build:
-    if: >-
-      github.event.pull_request.merged == true
-      && startsWith(github.event.pull_request.head.ref, 'tagpr-from')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -34,12 +24,8 @@ jobs:
         run: |
           npm run test
 
-      - name: Create release
+      - name: Upload release assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git fetch --filter=tree:0 --deepen=1 origin $BRANCH_NAME
-          latest_tag=$(git describe --tags --abbrev=0)
-          gh release create "$latest_tag" \
-            --title="$latest_tag" \
-            main.js manifest.json
+          gh release upload ${{ github.ref_name }} main.js manifest.json styles.css
