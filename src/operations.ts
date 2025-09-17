@@ -10,7 +10,13 @@ export class Operator {
 
   constructor(app: UnsafeApp) {
     this.app = app;
-    this.dc = getDatacoreAPI(app);
+    const dc = getDatacoreAPI(app);
+    if (!dc) {
+      throw new Error(
+        "Datacore API not found. Make sure the Datacore plugin is enabled."
+      );
+    }
+    this.dc = dc;
   }
 
   private getActiveTFile(): TFile {
