@@ -34,10 +34,6 @@ jobs:
         run: |
           npm run test
 
-      - name: Package plugin
-        run: |
-          zip plugin.zip main.js manifest.json styles.css
-
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,4 +42,4 @@ jobs:
           latest_tag=$(git describe --tags --abbrev=0)
           gh release create "$latest_tag" \
             --title="$latest_tag" \
-            plugin.zip
+            main.js manifest.json
