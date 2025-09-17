@@ -1,16 +1,16 @@
 import type { Editor, TFile } from "obsidian";
 import { Replacer, UnsafeApp } from "./types";
-import { createReplacerFromContent } from "./dataview-publisher";
-import { DataviewApi } from "obsidian-dataview";
-import { getDataviewAPI } from "./dataview-utils";
+import { createReplacerFromContent } from "./datacore-publisher";
+import { getDatacoreAPI } from "./datacore-utils";
+import { DatacoreApi } from "@blacksmithgu/datacore";
 
 export class Operator {
   app: UnsafeApp;
-  dv: DataviewApi;
+  dc: DatacoreApi;
 
   constructor(app: UnsafeApp) {
     this.app = app;
-    this.dv = getDataviewAPI(app);
+    this.dc = getDatacoreAPI(app);
   }
 
   private getActiveTFile(): TFile {
@@ -27,7 +27,7 @@ export class Operator {
 
     const tfile = this.getActiveTFile();
 
-    const replacer = await createReplacerFromContent(content, this.dv, tfile);
+    const replacer = await createReplacerFromContent(content, this.dc, tfile);
 
     // If there is no replacer, do nothing
     if (replacer.length === 0) {
@@ -44,17 +44,16 @@ export class Operator {
     const targetTfiles = this.retrieveTfilesFromSource(source);
 
     targetTfiles.forEach(async (tfile) => {
-      await this.updateDataviewPublisherOutput(tfile);
+      await this.updateDatacorePublisherOutput(tfile);
     });
   }
 
   private retrievePathsFromSource(source: string): Array<string> {
-    const paths =
-      this.dv
-        .pagePaths(source)
-        .map((path) => this.dv.io.normalize(path))
-        .array() ?? [];
-    return paths;
+    const pages = this.dc.pages(source);
+    if (!pages) {
+      return [];
+    }
+    return pages.map((p: any) => p.file.path);
   }
 
   private retrieveTfilesFromSource(source: string): Array<TFile> {
@@ -65,10 +64,10 @@ export class Operator {
     return tfiles;
   }
 
-  private async updateDataviewPublisherOutput(tfile: TFile) {
+  private async updateDatacorePublisherOutput(tfile: TFile) {
     const content = await this.app.vault.cachedRead(tfile);
 
-    const replacer = await createReplacerFromContent(content, this.dv, tfile);
+    const replacer = await createReplacerFromContent(content, this.dc, tfile);
     const updatedContent = this.updateContent(content, replacer);
 
     this.app.vault.process(tfile, () => updatedContent);
