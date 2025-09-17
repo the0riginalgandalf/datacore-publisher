@@ -102,7 +102,7 @@ You can use [`DatacoreAPI`](https://github.com/blacksmithgu/datacore) object as 
   - Insert Datacore Publisher Template at next line of cursor
 - Update datacore publish blocks
   - Update all Datacore Publish blocks for the files that correspond to the specified Source in settings.
-- Update datacore publish blocks and open publish panel
+- Update datacore publish blocks and open publish panel.
   - Same as "Update datacore publish blocks" and open publish panel.
 
 ## Inspirations
