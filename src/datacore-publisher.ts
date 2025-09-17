@@ -1,10 +1,10 @@
 import type { TFile } from "obsidian";
-import type { DataviewApi } from "obsidian-dataview";
+import type { DatacoreApi } from "@blacksmithgu/datacore";
 import type { BlockInfo, Replacer } from "./types";
 import { EndBlockNotFoundError, StartBlockNotFoundError } from "./errors";
 
-const START_BLOCK_REGEX = /\s*%%\s*DATAVIEW_PUBLISHER:\s*start\s*[\s\S]*?%%\s*/;
-const END_BLOCK_REGEX = /\s*%%\s*DATAVIEW_PUBLISHER:\s*end\s*%%\s*/;
+const START_BLOCK_REGEX = /\s*%%\s*DATACORE_PUBLISHER:\s*start\s*[\s\S]*?%%\s*/;
+const END_BLOCK_REGEX = /\s*%%\s*DATACORE_PUBLISHER:\s*end\s*%%\s*/;
 const BLOCK_REGEX = new RegExp(
   START_BLOCK_REGEX.source +
     /(?<output>[\s\S]*?)/.source +
@@ -14,11 +14,11 @@ const BLOCK_REGEX = new RegExp(
 
 export async function createReplacerFromContent(
   content: string,
-  dv: DataviewApi,
+  dc: DatacoreApi,
   tfile?: TFile
 ): Promise<Array<Replacer>> {
   const blocks = extractBlocks(content);
-  const updatedBlocks = await updateBlocks(blocks, dv, tfile);
+  const updatedBlocks = await updateBlocks(blocks, dc, tfile);
   const replacer = createReplacer(blocks, updatedBlocks);
   return replacer;
 }
@@ -35,22 +35,22 @@ export function createReplacer(
 
 export async function updateBlocks(
   blocks: Array<BlockInfo>,
-  dv: DataviewApi,
+  dc: DatacoreApi,
   tfile?: TFile
 ) {
   return await Promise.all(
     blocks.map((block) => {
-      return updateBlock(block, dv, tfile);
+      return updateBlock(block, dc, tfile);
     })
   );
 }
 
 export async function updateBlock(
   block: BlockInfo,
-  dv: DataviewApi,
+  dc: DatacoreApi,
   tfile?: TFile
 ): Promise<BlockInfo> {
-  const executionResult = await executeBlock(block, dv, tfile);
+  const executionResult = await executeBlock(block, dc, tfile);
 
   return {
     ...block,
@@ -63,32 +63,16 @@ export async function updateBlock(
 
 export async function executeBlock(
   block: BlockInfo,
-  dv: DataviewApi,
+  dc: DatacoreApi,
   tfile?: TFile
 ): Promise<string> {
-  if (
-    ["dataviewjs", "javascript", "js"].some((x) => block.language.startsWith(x))
-  ) {
-    // Define to access the current file object as file within eval
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const file = tfile;
-    const evalResult = eval(block.query);
-    return evalResult.trim();
-  }
-  // languageが指定されていない場合は、DQLとして実行する
-  const result = await executeQueryMarkdown(block.query, dv, tfile);
-  return result.trim();
-}
-
-export async function executeQueryMarkdown(
-  query: string,
-  dv: DataviewApi,
-  originFile?: TFile
-) {
-  const result = await dv.tryQueryMarkdown(query, originFile?.path);
-  // ref. https://github.com/udus122/dataview-publisher/issues/41#issuecomment-2208610505
-  const snitizedResult = result.replaceAll("\\\\|", "\\|");
-  return snitizedResult;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const file = tfile;
+  const script = `(async (dc) => {
+    ${block.query}
+  })`;
+  const evalResult = await eval(script)(dc);
+  return evalResult.toString().trim();
 }
 
 export function extractBlock(content: string): Array<string> {
